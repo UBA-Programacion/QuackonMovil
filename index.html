@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0066CC">
+    <title>ΔZero - Simulador de Arbitraje</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Header - NAVBAR ULTRA COMPACTO -->
+<header class="header">
+  <div class="header-content">
+    <div class="logo">
+      <span class="logo-delta">Δ</span>
+      <span>Zero</span>
+    </div>
+    <div class="navbar-controls">
+      <!-- Dropdown Red -->
+      <div class="dropdown-group">
+        <label>Red</label>
+        <select id="networkSelector" class="network-selector">
+          <option value="ethereum">Ethereum</option>
+          <option value="bnbchain">BNB Chain</option>
+          <option value="solana">Solana</option>
+          <option value="cardano">Cardano</option>
+          <option value="polygon">Polygon</option>
+          <option value="arbitrum">Arbitrum</option>
+        </select>
+      </div>
+      <!-- Dropdown Intercambios -->
+      <div class="dropdown-group">
+        <label>Intercambios</label>
+        <select id="exchangesSelector" class="exchanges-selector">
+          <option value="2" selected>2 Inter.</option>
+          <option value="3">3 Inter.</option>
+          <option value="4">4 Inter.</option>
+        </select>
+      </div>
+      <!-- Wallet Button -->
+      <div class="navbar-right">
+        <button class="wallet-btn" id="walletBtn" title="Abrir billetera">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00faff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2" style="filter: drop-shadow(0 0 6px #00faff);"/>
+            <path d="M16 3h4a2 2 0 0 1 2 2v2" style="filter: drop-shadow(0 0 6px #00faff);"/>
+            <circle cx="18" cy="15" r="1" style="filter: drop-shadow(0 0 6px #00faff);"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+    <!-- Contenido principal -->
+    <main class="container main-content">
+        <!-- SECCIÓN FLASH LOANS - PRIMERA Y MÁS PROMINENTE -->
+        <section class="section">
+            <h2 class="section-title">
+                PROVEEDORES DE FLASH LOANS
+            </h2>
+            <div class="flash-loans-grid" id="flashLoansGrid"></div>
+        </section>
+
+        <!-- PRÉSTAMO FLASH -->
+        <section class="section" id="activeFlashLoanSection" style="display: none;">
+            <h2 class="section-title">
+                Préstamo Flash
+            </h2>
+            <div id="activeFlashLoan" class="active-flash-loan"></div>
+        </section>
+
+        <!-- SECCIÓN INTERCAMBIO 1 -->
+        <section class="section" id="exchangeSection1" style="display: block;">
+            <h2 class="section-title">
+                <span>🔄</span>
+                INTERCAMBIO 1
+            </h2>
+            <div class="exchanges-grid" id="exchangeGrid1"></div>
+        </section>
+
+        <!-- SECCIÓN INTERCAMBIO 2 -->
+        <section class="section" id="exchangeSection2" style="display: block;">
+            <h2 class="section-title">
+                <span>🔄</span>
+                INTERCAMBIO 2
+            </h2>
+            <div class="exchanges-grid" id="exchangeGrid2"></div>
+        </section>
+
+        <!-- SECCIÓN INTERCAMBIO 3 -->
+        <section class="section" id="exchangeSection3" style="display: none;">
+            <h2 class="section-title">
+                <span>🔄</span>
+                INTERCAMBIO 3
+            </h2>
+            <div class="exchanges-grid" id="exchangeGrid3"></div>
+        </section>
+
+        <!-- SECCIÓN INTERCAMBIO 4 -->
+        <section class="section" id="exchangeSection4" style="display: none;">
+            <h2 class="section-title">
+                <span>🔄</span>
+                INTERCAMBIO 4
+            </h2>
+            <div class="exchanges-grid" id="exchangeGrid4"></div>
+        </section>
+
+        <!-- SECCIÓN INTERCAMBIO 5 -->
+        <section class="section" id="exchangeSection5" style="display: none;">
+            <h2 class="section-title">
+                <span>🔄</span>
+                INTERCAMBIO 5
+            </h2>
+            <div class="exchanges-grid" id="exchangeGrid5"></div>
+        </section>
+
+        <!-- DEVOLVIENDO PRÉSTAMO A -->
+        <section class="section" id="repaymentSection" style="display: none;">
+            <h2 class="section-title">
+                Devolviendo Préstamo a
+            </h2>
+            <div id="repaymentFlashLoan" class="active-flash-loan"></div>
+        </section>
+
+    </main>
+
+    <!-- Footer con botones fijos -->
+    <footer class="footer-buttons">
+        <button class="btn btn-reset" onclick="resetApp()" id="resetBtn">
+            Reset
+        </button>
+        <button class="btn btn-arbitrage" onclick="simulateStrategy()" id="simulateBtn" disabled>
+            Arbitraje
+        </button>
+    </footer>
+
+    <!-- Modal de Flash Loan -->
+    <div id="flashLoanModal" class="modal selection-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalFlashLoanName">Flash Loan</h3>
+                <button class="modal-close" onclick="closeFlashLoanModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">💰 Cantidad a solicitar</label>
+                    <input type="number" id="flashLoanAmount" class="form-input" placeholder="Ingresa cantidad" min="0" step="0.01">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">🪙 Token</label>
+                    <select id="flashLoanToken" class="form-select">
+                        <option value="">-- Elige un token --</option>
+                    </select>
+                </div>
+
+                <div class="commission-info">
+                    <div style="margin-bottom: 8px;"><strong>📌 Comisión:</strong> <span id="flashLoanCommission">0%</span></div>
+                    <div style="margin-bottom: 8px;"><strong>📊 APY:</strong> <span id="flashLoanAPY">0%</span></div>
+                    <div><strong>💎 Límite:</strong> <span id="flashLoanLimit">-</span></div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeFlashLoanModal()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="confirmFlashLoan()">Solicitar Flash Loan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de selección de exchange -->
+    <div id="selectionModal" class="modal selection-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalExchangeName">Exchange</h3>
+                <button class="modal-close" onclick="closeSelectionModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <!-- Token a enviar - inline -->
+                <div class="modal-row">
+                    <label>Token a enviar:</label>
+                    <span class="modal-value" id="exchangeModalTokenDisplay">-</span>
+                </div>
+                
+                <!-- Cantidad - inline -->
+                <div class="modal-row">
+                    <label>Cantidad:</label>
+                    <span class="modal-value" id="exchangeModalAmountDisplay">-</span>
+                </div>
+                
+                <!-- Comisión - display -->
+                <div class="modal-row">
+                    <label>Comisión:</label>
+                    <span class="modal-value" id="modalCommission">0%</span>
+                </div>
+                
+                <!-- Moneda a recibir - selector -->
+                <div class="modal-section">
+                    <label>Moneda a recibir:</label>
+                    <select id="tokenToReceiveSelect" class="form-select">
+                        <option value="">-- Selecciona una moneda --</option>
+                    </select>
+                    <div id="lastExchangeNote" style="display: none; font-size: 11px; color: #6b7280; margin-top: 4px; font-style: italic;">(Token del Flash Loan - Fijo)</div>
+                </div>
+
+                <div id="lastExchangeInfo" class="commission-info" style="display: none; background: rgba(50, 184, 198, 0.15); border-color: rgba(50, 184, 198, 0.4); font-size: 11px;">
+                    <strong>ⓘ Esta moneda es obligatoria para cerrar el ciclo de arbitraje.</strong>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeSelectionModal()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="confirmSelection()">Confirmar Intercambio</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de resultados -->
+    <div id="resultsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">📊 Resultados</h3>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 16px; color: var(--color-text-secondary);">Calculando...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
